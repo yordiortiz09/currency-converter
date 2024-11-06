@@ -1,6 +1,9 @@
 // src/App.js
-import React, { useState } from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography, Box, AppBar, IconButton } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import {
+  Drawer, List, ListItem, ListItemIcon, ListItemText,
+  Toolbar, Typography, Box, AppBar, IconButton, Snackbar, Alert
+} from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import BusinessIcon from '@mui/icons-material/Business';
@@ -12,19 +15,84 @@ import CompanyManager from './components/CompanyManager';
 const App = () => {
   const [currentSection, setCurrentSection] = useState('Inicio');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [currencies, setCurrencies] = useState([
+    { code: 'USD', value: 18.50 },
+    { code: 'MXN', value: 1.0 },
+    { code: 'EUR', value: 20.50 },
+    { code: 'JPY', value: 0.17 },
+    { code: 'GBP', value: 23.75 },
+    { code: 'CAD', value: 14.75 },
+    { code: 'AUD', value: 12.65 },
+    { code: 'CHF', value: 19.20 },
+    { code: 'CNY', value: 2.80 },
+    { code: 'SEK', value: 1.85 },
+    { code: 'NZD', value: 11.80 },
+    { code: 'SGD', value: 13.50 },
+    { code: 'HKD', value: 2.38 },
+    { code: 'NOK', value: 1.78 },
+    { code: 'KRW', value: 0.015 },
+    { code: 'TRY', value: 1.03 },
+    { code: 'INR', value: 0.22 },
+    { code: 'BRL', value: 3.70 },
+    { code: 'ZAR', value: 0.99 },
+    { code: 'RUB', value: 0.20 },
+    { code: 'DKK', value: 2.75 },
+    { code: 'PLN', value: 4.50 },
+    { code: 'THB', value: 0.53 },
+    { code: 'IDR', value: 0.0013 },
+    { code: 'HUF', value: 0.055 },
+    { code: 'CZK', value: 0.85 }
+  ]);
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Cargar empresas desde localStorage al montar el componente
+  useEffect(() => {
+    const savedCompanies = JSON.parse(localStorage.getItem('companies')) || [];
+    setCompanies(savedCompanies);
+  }, []);
+
+  // Guardar empresas en localStorage cada vez que cambie la lista
+  useEffect(() => {
+    localStorage.setItem('companies', JSON.stringify(companies));
+  }, [companies]);
 
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
+
+  const handleAddCurrency = (newCurrency) => {
+    setCurrencies([...currencies, newCurrency]);
+    showNotification("Divisa agregada exitosamente");
+  };
+
+  const handleAddCompany = (newCompany) => {
+    setCompanies([...companies, newCompany]);
+    showNotification("Empresa agregada exitosamente");
+  };
+
+  const handleDeleteCompany = (companyToDelete) => {
+    setCompanies(companies.filter(company => company !== companyToDelete));
+    showNotification("Empresa eliminada exitosamente");
+  };
+
+  const showNotification = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const renderSection = () => {
     switch (currentSection) {
       case 'Inicio':
-        return <CurrencyConverter />;
+        return <CurrencyConverter currencies={currencies || []} />;
       case 'Divisas':
-        return <CurrencyManager />;
+        return <CurrencyManager currencies={currencies || []} onAddCurrency={handleAddCurrency} />;
       case 'Empresas':
-        return <CompanyManager />;
+        return <CompanyManager 
+                  companies={companies} 
+                  onAddCompany={handleAddCompany} 
+                  onDeleteCompany={handleDeleteCompany} 
+               />;
       default:
-        return <CurrencyConverter />;
+        return <CurrencyConverter currencies={currencies || []} />;
     }
   };
 
@@ -41,7 +109,6 @@ const App = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Drawer configurado como temporary */}
       <Drawer
         variant="temporary"
         open={drawerOpen}
@@ -70,6 +137,18 @@ const App = () => {
       <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
         {renderSection()}
       </Box>
+
+      {/* Snackbar for Notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

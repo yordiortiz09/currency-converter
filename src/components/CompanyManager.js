@@ -1,75 +1,93 @@
 // src/components/CompanyManager.js
 import React, { useState } from 'react';
-import { Box, TextField, Button, List, ListItem, ListItemText, IconButton, Typography } from '@mui/material';
+import { Box, TextField, Button, Typography, List, ListItem, ListItemText, Paper, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const CompanyManager = () => {
-  const [companies, setCompanies] = useState([{ id: 1, name: "Empresa A" }]);
-  const [newCompany, setNewCompany] = useState('');
-  const [editId, setEditId] = useState(null);
-  const [editName, setEditName] = useState('');
+const CompanyManager = ({ companies, onAddCompany, onDeleteCompany }) => {
+  const [companyName, setCompanyName] = useState('');
+  const [editingIndex, setEditingIndex] = useState(null); // Para rastrear qué empresa se está editando
 
-  const handleAddCompany = () => {
-    if (newCompany) {
-      setCompanies([...companies, { id: Date.now(), name: newCompany }]);
-      setNewCompany('');
+  const handleAddOrEditCompany = () => {
+    const trimmedName = companyName.trim();
+    if (!trimmedName) {
+      alert("Por favor ingresa un nombre de empresa válido.");
+      return;
     }
+
+    if (editingIndex !== null) {
+      // Modo edición
+      onDeleteCompany(companies[editingIndex]); // Primero elimina la empresa anterior
+      onAddCompany(trimmedName); // Luego agrega la empresa editada
+      setEditingIndex(null);
+    } else {
+      // Modo agregar
+      onAddCompany(trimmedName);
+    }
+
+    setCompanyName('');
   };
 
-  const handleEditCompany = (id) => {
-    const updatedCompanies = companies.map(company =>
-      company.id === id ? { ...company, name: editName } : company
-    );
-    setCompanies(updatedCompanies);
-    setEditId(null);
-    setEditName('');
-  };
-
-  const handleDeleteCompany = (id) => {
-    setCompanies(companies.filter(company => company.id !== id));
+  const handleEditCompany = (index) => {
+    setEditingIndex(index);
+    setCompanyName(companies[index]);
   };
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>Empresas</Typography>
+    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 3, p: 2, boxShadow: 3, borderRadius: 2 }}>
+      <Typography variant="h5" gutterBottom align="center">
+        Gestión de Empresas
+      </Typography>
+      
       <TextField
-        label="Nueva Empresa"
+        label="Nombre de la Empresa"
         fullWidth
         margin="normal"
-        value={newCompany}
-        onChange={(e) => setNewCompany(e.target.value)}
+        value={companyName}
+        onChange={(e) => setCompanyName(e.target.value)}
+        helperText={editingIndex !== null ? "Editando empresa seleccionada" : "Ingresa el nombre de la empresa que deseas agregar"}
       />
-      <Button variant="contained" onClick={handleAddCompany} fullWidth>
-        Agregar Empresa
+      
+      <Button 
+        variant="contained" 
+        onClick={handleAddOrEditCompany} 
+        fullWidth 
+        sx={{ mt: 2, mb: 2 }}
+      >
+        {editingIndex !== null ? "Guardar Cambios" : "Agregar Empresa"}
       </Button>
-
-      <List>
-        {companies.map((company) => (
-          <ListItem key={company.id} secondaryAction={
-            <>
-              <IconButton edge="end" onClick={() => { setEditId(company.id); setEditName(company.name); }}>
-                <EditIcon />
-              </IconButton>
-              <IconButton edge="end" onClick={() => handleDeleteCompany(company.id)}>
-                <DeleteIcon />
-              </IconButton>
-            </>
-          }>
-            <ListItemText
-              primary={editId === company.id ? (
-                <TextField
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onBlur={() => handleEditCompany(company.id)}
-                />
-              ) : (
-                company.name
-              )}
-            />
-          </ListItem>
-        ))}
-      </List>
+      
+      <Paper variant="outlined" sx={{ maxHeight: 200, overflowY: 'auto', p: 2 }}>
+        {companies.length > 0 ? (
+          <List>
+            {companies.map((company, index) => (
+              <ListItem
+                key={index}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingY: 1,
+                }}
+              >
+                <ListItemText primary={company} />
+                <Box>
+                  <IconButton color="primary" onClick={() => handleEditCompany(index)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => onDeleteCompany(company)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <Typography variant="body2" color="text.secondary" align="center">
+            No hay empresas registradas.
+          </Typography>
+        )}
+      </Paper>
     </Box>
   );
 };
