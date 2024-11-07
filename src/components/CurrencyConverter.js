@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Box, TextField, Select, MenuItem, Typography, Button,
-  Card, CardContent, CardActions, Grid, IconButton, Divider
+  Card, CardContent, Grid, IconButton, Divider, Paper
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
@@ -96,57 +96,69 @@ const CurrencyConverter = ({ currencies }) => {
         <AttachMoneyIcon fontSize="large" /> Convertidor de Divisas
       </Typography>
 
-      <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
-        <Grid item xs={5}>
-          <TextField
-            label="Monto"
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            fullWidth
-            variant="outlined"
-            sx={{ bgcolor: '#f9f9f9', borderRadius: 2 }}
-          />
-        </Grid>
+      <Paper sx={{ p: 3, mt: 3, mb: 4, borderRadius: 2, bgcolor: '#f9f9f9' }}>
+        <Grid container spacing={2} alignItems="center">
+          {}
+          <Grid item xs={5}>
+            <Typography variant="subtitle2" gutterBottom color="textSecondary">Desde</Typography>
+            <TextField
+              label="Monto"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 2 }}
+            />
+            <Select
+              value={fromCurrency}
+              onChange={(e) => setFromCurrency(e.target.value)}
+              fullWidth
+              sx={{ bgcolor: '#fff', borderRadius: 1 }}
+            >
+              {currencies.map(({ code }) => (
+                <MenuItem key={code} value={code}>
+                  {code}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
 
-        <Grid item xs={2} textAlign="center">
-          <IconButton onClick={handleSwapCurrencies} sx={{ bgcolor: '#e0f7fa', borderRadius: '50%' }}>
-            <SwapHorizIcon />
-          </IconButton>
-        </Grid>
+          {/* Icono de Cambio de Moneda */}
+          <Grid item xs={2} textAlign="center">
+            <IconButton onClick={handleSwapCurrencies} sx={{ bgcolor: '#e0f7fa', borderRadius: '50%' }}>
+              <SwapHorizIcon />
+            </IconButton>
+          </Grid>
 
-        <Grid item xs={5}>
-          <Select
-            value={fromCurrency}
-            onChange={(e) => setFromCurrency(e.target.value)}
-            fullWidth
-            sx={{ bgcolor: '#f9f9f9', borderRadius: 2 }}
-          >
-            {currencies.map(({ code }) => (
-              <MenuItem key={code} value={code}>
-                {code}
-              </MenuItem>
-            ))}
-          </Select>
+          {}
+          <Grid item xs={5}>
+            <Typography variant="subtitle2" gutterBottom color="textSecondary">Hacia</Typography>
+            <TextField
+              label="Resultado"
+              value={conversionResult || '...'}
+              fullWidth
+              variant="outlined"
+              InputProps={{ readOnly: true }}
+              sx={{ mb: 2, bgcolor: '#f1f8e9', fontWeight: 'bold' }}
+            />
+            <Select
+              value={toCurrency}
+              onChange={(e) => setToCurrency(e.target.value)}
+              fullWidth
+              sx={{ bgcolor: '#fff', borderRadius: 1 }}
+            >
+              {currencies.map(({ code }) => (
+                <MenuItem key={code} value={code}>
+                  {code}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
         </Grid>
+      </Paper>
 
-        <Grid item xs={5}>
-          <Select
-            value={toCurrency}
-            onChange={(e) => setToCurrency(e.target.value)}
-            fullWidth
-            sx={{ bgcolor: '#f9f9f9', borderRadius: 2 }}
-          >
-            {currencies.map(({ code }) => (
-              <MenuItem key={code} value={code}>
-                {code}
-              </MenuItem>
-            ))}
-          </Select>
-        </Grid>
-      </Grid>
-
-      <Card variant="outlined" sx={{ mb: 3, bgcolor: '#e8f5e9', borderRadius: 3 }}>
+      <Card variant="outlined" sx={{ mb: 4, bgcolor: '#e8f5e9', borderRadius: 3 }}>
         <CardContent>
           <Typography variant="h5" align="center">
             {amount} {fromCurrency} = {conversionResult || '...'} {toCurrency}
@@ -155,19 +167,11 @@ const CurrencyConverter = ({ currencies }) => {
             Tasa de cambio actualizada automáticamente
           </Typography>
         </CardContent>
-        <CardActions>
-          <Button variant="contained" color="primary" fullWidth sx={{ py: 1.5, fontWeight: 'bold' }}>
-            Convertir
-          </Button>
-        </CardActions>
       </Card>
 
-      <Divider sx={{ my: 3 }} />
+      <Divider sx={{ my: 4 }} />
 
       {}
-     
-
-      {/* Gráfico de Comparación con Otras Monedas */}
       <Box sx={{ textAlign: 'center', mb: 4 }}>
         <Typography variant="h6">
           <CompareArrowsIcon /> Comparación de {fromCurrency} con otras monedas principales
