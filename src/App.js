@@ -4,6 +4,8 @@ import {
   Drawer, List, ListItem, ListItemIcon, ListItemText,
   Toolbar, Typography, Box, AppBar, IconButton, Snackbar, Alert
 } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import HomeIcon from '@mui/icons-material/Home';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import BusinessIcon from '@mui/icons-material/Business';
@@ -47,13 +49,39 @@ const App = () => {
 
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Cargar empresas desde localStorage al montar el componente
+  const theme = createTheme({
+    palette: {
+      primary: {
+        main: '#388E3C', 
+      },
+      secondary: {
+        main: '#388E3C', 
+      },
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            fontWeight: 'bold',
+            borderRadius: 8,
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          colorPrimary: {
+            backgroundColor: '#4CAF50',
+          },
+        },
+      },
+    },
+  });
+
   useEffect(() => {
     const savedCompanies = JSON.parse(localStorage.getItem('companies')) || [];
     setCompanies(savedCompanies);
   }, []);
 
-  // Guardar empresas en localStorage cada vez que cambie la lista
   useEffect(() => {
     localStorage.setItem('companies', JSON.stringify(companies));
   }, [companies]);
@@ -97,59 +125,62 @@ const App = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <IconButton color="inherit" edge="start" onClick={handleDrawerToggle}>
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Convertidor de Divisas
-          </Typography>
-        </Toolbar>
-      </AppBar>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: 'flex' }}>
+        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+          <Toolbar>
+            <IconButton color="inherit" edge="start" onClick={handleDrawerToggle}>
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" noWrap component="div">
+              Convertidor de Divisas
+            </Typography>
+          </Toolbar>
+        </AppBar>
 
-      <Drawer
-        variant="temporary"
-        open={drawerOpen}
-        onClose={handleDrawerToggle}
-        sx={{
-          '& .MuiDrawer-paper': { width: 240 },
-        }}
-      >
-        <Toolbar />
-        <List>
-          <ListItem button onClick={() => { setCurrentSection('Inicio'); handleDrawerToggle(); }}>
-            <ListItemIcon><HomeIcon /></ListItemIcon>
-            <ListItemText primary="Inicio" />
-          </ListItem>
-          <ListItem button onClick={() => { setCurrentSection('Divisas'); handleDrawerToggle(); }}>
-            <ListItemIcon><MonetizationOnIcon /></ListItemIcon>
-            <ListItemText primary="Divisas" />
-          </ListItem>
-          <ListItem button onClick={() => { setCurrentSection('Empresas'); handleDrawerToggle(); }}>
-            <ListItemIcon><BusinessIcon /></ListItemIcon>
-            <ListItemText primary="Empresas" />
-          </ListItem>
-        </List>
-      </Drawer>
+        <Drawer
+          variant="temporary"
+          open={drawerOpen}
+          onClose={handleDrawerToggle}
+          sx={{
+            '& .MuiDrawer-paper': { width: 240 },
+          }}
+        >
+          <Toolbar />
+          <List>
+            <ListItem button onClick={() => { setCurrentSection('Inicio'); handleDrawerToggle(); }}>
+              <ListItemIcon><HomeIcon /></ListItemIcon>
+              <ListItemText primary="Inicio" />
+            </ListItem>
+            <ListItem button onClick={() => { setCurrentSection('Divisas'); handleDrawerToggle(); }}>
+              <ListItemIcon><MonetizationOnIcon /></ListItemIcon>
+              <ListItemText primary="Divisas" />
+            </ListItem>
+            <ListItem button onClick={() => { setCurrentSection('Empresas'); handleDrawerToggle(); }}>
+              <ListItemIcon><BusinessIcon /></ListItemIcon>
+              <ListItemText primary="Empresas" />
+            </ListItem>
+          </List>
+        </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-        {renderSection()}
+        <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+          {renderSection()}
+        </Box>
+
+        {/* Snackbar para notificaciones */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={3000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Box>
-
-      {/* Snackbar for Notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    </ThemeProvider>
   );
 };
 

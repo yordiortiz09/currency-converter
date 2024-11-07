@@ -1,12 +1,13 @@
 // src/components/CompanyManager.js
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, List, ListItem, ListItemText, Paper, IconButton } from '@mui/material';
+import { Box, TextField, Button, Typography, List, ListItem, ListItemText, Paper, IconButton, Divider } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const CompanyManager = ({ companies, onAddCompany, onDeleteCompany }) => {
   const [companyName, setCompanyName] = useState('');
-  const [editingIndex, setEditingIndex] = useState(null); // Para rastrear qué empresa se está editando
+  const [editingIndex, setEditingIndex] = useState(null);
 
   const handleAddOrEditCompany = () => {
     const trimmedName = companyName.trim();
@@ -16,12 +17,9 @@ const CompanyManager = ({ companies, onAddCompany, onDeleteCompany }) => {
     }
 
     if (editingIndex !== null) {
-      // Modo edición
-      onDeleteCompany(companies[editingIndex]); // Primero elimina la empresa anterior
-      onAddCompany(trimmedName); // Luego agrega la empresa editada
+      companies[editingIndex] = trimmedName;
       setEditingIndex(null);
     } else {
-      // Modo agregar
       onAddCompany(trimmedName);
     }
 
@@ -33,12 +31,17 @@ const CompanyManager = ({ companies, onAddCompany, onDeleteCompany }) => {
     setCompanyName(companies[index]);
   };
 
+  const handleCancelEdit = () => {
+    setEditingIndex(null);
+    setCompanyName('');
+  };
+
   return (
-    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 3, p: 2, boxShadow: 3, borderRadius: 2 }}>
+    <Box sx={{ maxWidth: 500, mx: 'auto', mt: 4, p: 3, boxShadow: 3, borderRadius: 2, bgcolor: '#f4f6f8' }}>
       <Typography variant="h5" gutterBottom align="center">
         Gestión de Empresas
       </Typography>
-      
+
       <TextField
         label="Nombre de la Empresa"
         fullWidth
@@ -47,43 +50,58 @@ const CompanyManager = ({ companies, onAddCompany, onDeleteCompany }) => {
         onChange={(e) => setCompanyName(e.target.value)}
         helperText={editingIndex !== null ? "Editando empresa seleccionada" : "Ingresa el nombre de la empresa que deseas agregar"}
       />
-      
-      <Button 
-        variant="contained" 
-        onClick={handleAddOrEditCompany} 
-        fullWidth 
-        sx={{ mt: 2, mb: 2 }}
-      >
-        {editingIndex !== null ? "Guardar Cambios" : "Agregar Empresa"}
-      </Button>
-      
-      <Paper variant="outlined" sx={{ maxHeight: 200, overflowY: 'auto', p: 2 }}>
+
+      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+        <Button 
+          variant="contained" 
+          onClick={handleAddOrEditCompany} 
+          fullWidth
+          sx={{ fontWeight: 'bold' }}
+        >
+          {editingIndex !== null ? "Guardar Cambios" : "Agregar Empresa"}
+        </Button>
+        
+        {editingIndex !== null && (
+          <Button 
+            variant="outlined" 
+            color="secondary" 
+            onClick={handleCancelEdit} 
+            sx={{ fontWeight: 'bold' }}
+          >
+            Cancelar
+          </Button>
+        )}
+      </Box>
+
+      <Paper variant="outlined" sx={{ maxHeight: 300, overflowY: 'auto', mt: 3, p: 1 }}>
         {companies.length > 0 ? (
           <List>
             {companies.map((company, index) => (
-              <ListItem
-                key={index}
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingY: 1,
-                }}
-              >
-                <ListItemText primary={company} />
-                <Box>
-                  <IconButton color="primary" onClick={() => handleEditCompany(index)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => onDeleteCompany(company)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </ListItem>
+              <Box key={index}>
+                <ListItem
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingY: 1,
+                  }}
+                >
+                  <ListItemText primary={company} />
+                  <Box>
+                    <IconButton color="primary" onClick={() => handleEditCompany(index)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton color="error" onClick={() => onDeleteCompany(company)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                </ListItem>
+                {index < companies.length - 1 && <Divider />}
+              </Box>
             ))}
           </List>
         ) : (
-          <Typography variant="body2" color="text.secondary" align="center">
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
             No hay empresas registradas.
           </Typography>
         )}
