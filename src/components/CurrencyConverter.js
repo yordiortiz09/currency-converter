@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Box, TextField, Select, MenuItem, Typography, Button,
-  Card, CardContent, CardActions, Grid, IconButton
+  Card, CardContent, CardActions, Grid, IconButton, Divider
 } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
 const CurrencyConverter = ({ currencies }) => {
   const [amount, setAmount] = useState(1);
@@ -17,13 +18,13 @@ const CurrencyConverter = ({ currencies }) => {
   const [conversionResult, setConversionResult] = useState(null);
   const [exchangeRates, setExchangeRates] = useState({});
   const [historicalData, setHistoricalData] = useState([]);
+  const [comparisonData, setComparisonData] = useState([]);
 
   useEffect(() => {
     const fetchRates = async () => {
       try {
         const result = await axios.get(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
         setExchangeRates(result.data.rates);
-        console.log("Exchange rates:", result.data.rates); // Verificar que las tasas de cambio se configuren
       } catch (error) {
         console.error("Error fetching exchange rates:", error);
       }
@@ -35,7 +36,6 @@ const CurrencyConverter = ({ currencies }) => {
     if (exchangeRates[toCurrency]) {
       const result = (amount * exchangeRates[toCurrency]).toFixed(2);
       setConversionResult(result);
-      console.log("Conversion result:", result); // Verificar que el resultado de la conversión se calcule
     }
   }, [amount, toCurrency, exchangeRates]);
 
@@ -61,36 +61,42 @@ const CurrencyConverter = ({ currencies }) => {
         }
       });
 
-      // Verificar que los datos se recibieron correctamente
-      console.log("Response data:", response.data);
-
       if (response.data && response.data.rates) {
         const data = Object.keys(response.data.rates).map(date => ({
           date,
           rate: response.data.rates[date][toCurrency] || 0,
         }));
-        
         setHistoricalData(data);
-        console.log("Historical data set:", data);
-      } else {
-        console.error("No se encontraron datos históricos.");
       }
     } catch (error) {
       console.error("Error fetching historical data:", error);
     }
   };
 
+  const fetchComparisonData = () => {
+    const majorCurrencies = ['EUR', 'JPY', 'GBP', 'CAD', 'AUD'];
+    const data = majorCurrencies.map(code => ({
+      currency: code,
+      rate: exchangeRates[code] ? exchangeRates[code].toFixed(2) : null,
+    })).filter(item => item.rate !== null);
+    setComparisonData(data);
+  };
+
   useEffect(() => {
     fetchHistoricalData();
   }, [fromCurrency, toCurrency]);
 
+  useEffect(() => {
+    fetchComparisonData();
+  }, [exchangeRates]);
+
   return (
-    <Box sx={{ p: 3, maxWidth: 700, mx: 'auto', mt: 5 }}>
+    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto', mt: 5 }}>
       <Typography variant="h4" component="h1" align="center" gutterBottom>
         <AttachMoneyIcon fontSize="large" /> Convertidor de Divisas
       </Typography>
 
-      <Grid container spacing={2} alignItems="center">
+      <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
         <Grid item xs={5}>
           <TextField
             label="Monto"
@@ -140,44 +146,45 @@ const CurrencyConverter = ({ currencies }) => {
         </Grid>
       </Grid>
 
-      <Card variant="outlined" sx={{ mt: 3, bgcolor: '#e8f5e9', borderRadius: 3 }}>
+      <Card variant="outlined" sx={{ mb: 3, bgcolor: '#e8f5e9', borderRadius: 3 }}>
         <CardContent>
           <Typography variant="h5" align="center">
             {amount} {fromCurrency} = {conversionResult || '...'} {toCurrency}
           </Typography>
           <Typography variant="body2" color="textSecondary" align="center">
-            Conversión actualizada automáticamente
+            Tasa de cambio actualizada automáticamente
           </Typography>
         </CardContent>
         <CardActions>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ py: 1.5, fontWeight: 'bold' }}
-          >
+          <Button variant="contained" color="primary" fullWidth sx={{ py: 1.5, fontWeight: 'bold' }}>
             Convertir
           </Button>
         </CardActions>
       </Card>
 
-      <Box sx={{ mt: 4, textAlign: 'center' }}>
+      <Divider sx={{ my: 3 }} />
+
+      {}
+     
+
+      {/* Gráfico de Comparación con Otras Monedas */}
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
         <Typography variant="h6">
-          <TrendingUpIcon /> Tendencia de Cambio (últimos 7 días)
+          <CompareArrowsIcon /> Comparación de {fromCurrency} con otras monedas principales
         </Typography>
-        {historicalData.length > 0 ? (
+        {comparisonData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={historicalData}>
+            <BarChart data={comparisonData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis dataKey="rate" />
+              <XAxis dataKey="currency" />
+              <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="rate" stroke="#8884d8" activeDot={{ r: 8 }} />
-            </LineChart>
+              <Bar dataKey="rate" fill="#4CAF50" />
+            </BarChart>
           </ResponsiveContainer>
         ) : (
           <Typography variant="body2" color="textSecondary">
-            No hay datos disponibles para mostrar el gráfico.
+            No hay datos disponibles para mostrar la comparación.
           </Typography>
         )}
       </Box>
