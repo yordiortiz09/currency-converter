@@ -24,20 +24,29 @@ const CurrencyConverter = ({ currencies }) => {
     const fetchRates = async () => {
       try {
         const result = await axios.get(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
-        setExchangeRates(result.data.rates);
+        const rates = { ...result.data.rates };
+
+        currencies.forEach(currency => {
+          if (!rates[currency.code]) {
+            rates[currency.code] = currency.value; 
+          }
+        });
+
+        setExchangeRates(rates);
       } catch (error) {
         console.error("Error fetching exchange rates:", error);
       }
     };
     fetchRates();
-  }, [fromCurrency]);
+  }, [fromCurrency, currencies]);
 
   useEffect(() => {
-    if (exchangeRates[toCurrency]) {
-      const result = (amount * exchangeRates[toCurrency]).toFixed(2);
+    const targetRate = exchangeRates[toCurrency] || currencies.find(c => c.code === toCurrency)?.value;
+    if (targetRate) {
+      const result = (amount * targetRate).toFixed(2);
       setConversionResult(result);
     }
-  }, [amount, toCurrency, exchangeRates]);
+  }, [amount, toCurrency, exchangeRates, currencies]);
 
   const handleSwapCurrencies = () => {
     setFromCurrency(toCurrency);
@@ -98,7 +107,6 @@ const CurrencyConverter = ({ currencies }) => {
 
       <Paper sx={{ p: 3, mt: 3, mb: 4, borderRadius: 2, bgcolor: '#f9f9f9' }}>
         <Grid container spacing={2} alignItems="center">
-          {}
           <Grid item xs={5}>
             <Typography variant="subtitle2" gutterBottom color="textSecondary">Desde</Typography>
             <TextField
@@ -124,14 +132,12 @@ const CurrencyConverter = ({ currencies }) => {
             </Select>
           </Grid>
 
-          {/* Icono de Cambio de Moneda */}
           <Grid item xs={2} textAlign="center">
             <IconButton onClick={handleSwapCurrencies} sx={{ bgcolor: '#e0f7fa', borderRadius: '50%' }}>
               <SwapHorizIcon />
             </IconButton>
           </Grid>
 
-          {}
           <Grid item xs={5}>
             <Typography variant="subtitle2" gutterBottom color="textSecondary">Hacia</Typography>
             <TextField
@@ -171,7 +177,6 @@ const CurrencyConverter = ({ currencies }) => {
 
       <Divider sx={{ my: 4 }} />
 
-      {}
       <Box sx={{ textAlign: 'center', mb: 4 }}>
         <Typography variant="h6">
           <CompareArrowsIcon /> Comparación de {fromCurrency} con otras monedas principales
